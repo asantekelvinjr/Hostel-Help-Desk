@@ -21,15 +21,29 @@ export const AuthProvider = ({ children }) => {
     }
   });
 
-  const login = ({ email, password }) => {
-    if (email === ADMIN.email && password === ADMIN.password) {
-      const sessionUser = { id: ADMIN.id, name: ADMIN.name, email: ADMIN.email, role: ADMIN.role };
-      setUser(sessionUser);
-      sessionStorage.setItem("hd_admin", JSON.stringify(sessionUser));
-      return { success: true };
-    }
-    return { success: false, error: "Invalid email or password." };
+  // const login = ({ email, password }) => {
+  //   if (email === ADMIN.email && password === ADMIN.password) {
+  //     const sessionUser = { id: ADMIN.id, name: ADMIN.name, email: ADMIN.email, role: ADMIN.role };
+  //     setUser(sessionUser);
+  //     sessionStorage.setItem("hd_admin", JSON.stringify(sessionUser));
+  //     return { success: true };
+  //   }
+  //   return { success: false, error: "Invalid email or password." };
+  // };
+
+  const login = ({ email, name }) => {
+  const sessionUser = {
+    id: Date.now(),
+    name: name || "User",
+    email,
+    role: "user", // always user for now
   };
+
+  setUser(sessionUser);
+  sessionStorage.setItem("hd_admin", JSON.stringify(sessionUser));
+
+  return { success: true };
+};
 
   const logout = () => {
     setUser(null);

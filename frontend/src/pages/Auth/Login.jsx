@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.png';
+import { useAuth } from '../../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -10,6 +11,8 @@ const Login = () => {
     email: '',
     password: '',
   });
+
+  const { login } = useAuth()
 
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -47,16 +50,39 @@ const Login = () => {
     setErrors(validate());
   };
 
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   const allTouched = { name: true, email: true, password: true };
+  //   setTouched(allTouched);
+  //   const errs = validate();
+  //   setErrors(errs);
+  //   if (Object.keys(errs).length === 0) {
+  //     navigate('/home');
+  //   }
+  // };
+
   const handleSubmit = (e) => {
-    e.preventDefault();
-    const allTouched = { name: true, email: true, password: true };
-    setTouched(allTouched);
-    const errs = validate();
-    setErrors(errs);
-    if (Object.keys(errs).length === 0) {
-      navigate('/home');
+  e.preventDefault();
+
+  const allTouched = { name: true, email: true, password: true };
+  setTouched(allTouched);
+
+  const errs = validate();
+  setErrors(errs);
+
+  if (Object.keys(errs).length === 0) {
+    const result = login({
+      email: formData.email,
+      password: formData.password,
+    });
+
+    if (result.success) {
+      navigate("/home");
+    } else {
+      setErrors({ general: result.error });
     }
-  };
+  }
+};
 
   const inputClass = (field) =>
     `w-full border rounded-md p-3 placeholder-[var(--color-text)] focus:outline-none focus:ring-2 transition ${
