@@ -1,22 +1,34 @@
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
-import Sidebar from "../../components/Sidebar";
 import AdminNavbar from "../../components/AdminNavbar";
+import Sidebar from "../../components/Sidebar";
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Shared avatar state — both Navbar and Sidebar stay in sync
+  const [avatar, setAvatar] = useState(null);
 
   return (
-    <div className="flex bg-gray-50 min-h-screen">
-      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+    <div className="flex min-h-screen bg-gray-50">
 
-      <div className="flex-1">
-        <AdminNavbar setSidebarOpen={setSidebarOpen} />
+      <Sidebar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        avatar={avatar}
+        setAvatar={setAvatar}
+      />
 
-        <div className="p-6 md:p-8">
+      <div className="flex-1 flex flex-col min-w-0">
+        <AdminNavbar
+          setSidebarOpen={setSidebarOpen}
+          avatar={avatar}
+          setAvatar={setAvatar}
+        />
+        <main className="flex-1 overflow-auto">
           <Outlet />
-        </div>
+        </main>
       </div>
+
     </div>
   );
 };
