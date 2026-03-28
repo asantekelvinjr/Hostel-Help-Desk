@@ -1,57 +1,61 @@
 import React, { createContext, useContext, useState } from "react";
+import { loginUser, loginAdmin } from "../api/api";
 
 const AuthContext = createContext(null);
-
-// Pre-seeded admin account — change these to your real credentials
-const ADMIN = {
-  id: 1,
-  name: "Admin",
-  email: "admin@hostel.com",
-  password: "admin123",
-  role: "admin",
-};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     try {
-      const stored = sessionStorage.getItem("hd_admin");
+      const stored = sessionStorage.getItem("hd_user");
       return stored ? JSON.parse(stored) : null;
     } catch {
       return null;
     }
   });
 
-  // const login = ({ email, password }) => {
-  //   if (email === ADMIN.email && password === ADMIN.password) {
-  //     const sessionUser = { id: ADMIN.id, name: ADMIN.name, email: ADMIN.email, role: ADMIN.role };
-  //     setUser(sessionUser);
-  //     sessionStorage.setItem("hd_admin", JSON.stringify(sessionUser));
-  //     return { success: true };
-  //   }
-  //   return { success: false, error: "Invalid email or password." };
-  // };
-
-  const login = ({ email, name }) => {
-  const sessionUser = {
-    id: Date.now(),
-    name: name || "User",
-    email,
-    role: "user", // always user for now
+  // ── User login ───────────────────────────────────────────
+  const login = async ({ email, password }) => {
+    try {
+      const { data } = await loginUser({ email, password });
+      const sessionUser = { ...data.user, role: "user" };
+      setUser(sessionUser);
+      sessionStorage.setItem("hd_user", JSON.stringify(sessionUser));
+      sessionStorage.setItem("hd_token", data.token);
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || "Login failed. Please try again.",
+      };
+    }
   };
 
-  setUser(sessionUser);
-  sessionStorage.setItem("hd_admin", JSON.stringify(sessionUser));
+  // ── Admin login ──────────────────────────────────────────
+  const adminLogin = async ({ email, password }) => {
+    try {
+      const { data } = await loginAdmin({ email, password });
+      const sessionUser = { ...data.admin, role: "admin" };
+      setUser(sessionUser);
+      sessionStorage.setItem("hd_user", JSON.stringify(sessionUser));
+      sessionStorage.setItem("hd_token", data.token);
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || "Login failed. Please try again.",
+      };
+    }
+  };
 
-  return { success: true };
-};
-
+  // ── Logout ───────────────────────────────────────────────
   const logout = () => {
     setUser(null);
-    sessionStorage.removeItem("hd_admin");
+    sessionStorage.removeItem("hd_user");
+    sessionStorage.removeItem("hd_token");
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, adminLogin, logout, isAdmin: user?.role === "admin" }}>
       {children}
     </AuthContext.Provider>
   );

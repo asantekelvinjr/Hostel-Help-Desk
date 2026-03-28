@@ -5,7 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import logo from "../../assets/logo.png";
 
 const AdminLogin = () => {
-  const { login } = useAuth();
+  const { adminLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -16,11 +16,13 @@ const AdminLogin = () => {
   const [touched, setTouched] = useState({});
   const [serverError, setServerError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const validate = (fields = formData) => {
     const errs = {};
     if (!fields.email.trim()) errs.email = "Email is required.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)) errs.email = "Enter a valid email.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email))
+      errs.email = "Enter a valid email.";
     if (!fields.password) errs.password = "Password is required.";
     return errs;
   };
@@ -39,19 +41,22 @@ const AdminLogin = () => {
     setErrors(validate());
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setTouched({ email: true, password: true });
     const errs = validate();
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
-    const result = login({ email: formData.email, password: formData.password });
-    if (!result.success) {
+    setLoading(true);
+    const result = await adminLogin({ email: formData.email, password: formData.password });
+    setLoading(false);
+
+    if (result.success) {
+      navigate("/admin");
+    } else {
       setServerError(result.error);
-      return;
     }
-    navigate("/admin");
   };
 
   const inputClass = (field) =>
@@ -96,12 +101,8 @@ const AdminLogin = () => {
           <div>
             <label className="block text-sm font-medium text-[var(--color-text)] mb-1">Email</label>
             <input
-              type="email"
-              name="email"
-              placeholder="admin@hostel.com"
-              value={formData.email}
-              onChange={handleChange}
-              onBlur={handleBlur}
+              type="email" name="email" placeholder="admin@hostel.com"
+              value={formData.email} onChange={handleChange} onBlur={handleBlur}
               className={inputClass("email")}
             />
             {errors.email && touched.email && (
@@ -114,19 +115,12 @@ const AdminLogin = () => {
             <label className="block text-sm font-medium text-[var(--color-text)] mb-1">Password</label>
             <div className="relative">
               <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                onBlur={handleBlur}
+                type={showPassword ? "text" : "password"} name="password" placeholder="••••••••"
+                value={formData.password} onChange={handleChange} onBlur={handleBlur}
                 className={`${inputClass("password")} pr-10`}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
+              <button type="button" onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
@@ -137,9 +131,10 @@ const AdminLogin = () => {
 
           <button
             type="submit"
-            className="w-full bg-[var(--color-primary)] text-white font-semibold py-3 rounded-md hover:bg-blue-700 transition"
+            disabled={loading}
+            className="w-full bg-[var(--color-primary)] text-white font-semibold py-3 rounded-md hover:bg-blue-700 transition disabled:opacity-60"
           >
-            Login as Admin
+            {loading ? "Logging in..." : "Login as Admin"}
           </button>
         </form>
 

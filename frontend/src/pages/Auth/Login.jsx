@@ -1,37 +1,26 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import logo from '../../assets/logo.png';
-import { useAuth } from '../../context/AuthContext';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import logo from "../../assets/logo.png";
+import { useAuth } from "../../context/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-  });
-
-  const { login } = useAuth()
-
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [serverError, setServerError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const validate = (fields = formData) => {
     const errs = {};
-    if (!fields.name.trim()) {
-      errs.name = 'Name is required.';
-    }
-    if (!fields.email.trim()) {
-      errs.email = 'Email is required.';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)) {
-      errs.email = 'Please enter a valid email address.';
-    }
-    if (!fields.password) {
-      errs.password = 'Password is required.';
-    } else if (fields.password.length < 6) {
-      errs.password = 'Password must be at least 6 characters.';
-    }
+    if (!fields.email.trim()) errs.email = "Email is required.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email))
+      errs.email = "Please enter a valid email address.";
+    if (!fields.password) errs.password = "Password is required.";
+    else if (fields.password.length < 6)
+      errs.password = "Password must be at least 6 characters.";
     return errs;
   };
 
@@ -39,9 +28,8 @@ const Login = () => {
     const { name, value } = e.target;
     const updated = { ...formData, [name]: value };
     setFormData(updated);
-    if (touched[name]) {
-      setErrors(validate(updated));
-    }
+    setServerError("");
+    if (touched[name]) setErrors(validate(updated));
   };
 
   const handleBlur = (e) => {
@@ -50,52 +38,36 @@ const Login = () => {
     setErrors(validate());
   };
 
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   const allTouched = { name: true, email: true, password: true };
-  //   setTouched(allTouched);
-  //   const errs = validate();
-  //   setErrors(errs);
-  //   if (Object.keys(errs).length === 0) {
-  //     navigate('/home');
-  //   }
-  // };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setTouched({ email: true, password: true });
+    const errs = validate();
+    setErrors(errs);
+    if (Object.keys(errs).length > 0) return;
 
-  const handleSubmit = (e) => {
-  e.preventDefault();
-
-  const allTouched = { name: true, email: true, password: true };
-  setTouched(allTouched);
-
-  const errs = validate();
-  setErrors(errs);
-
-  if (Object.keys(errs).length === 0) {
-    const result = login({
-      email: formData.email,
-      password: formData.password,
-    });
+    setLoading(true);
+    const result = await login({ email: formData.email, password: formData.password });
+    setLoading(false);
 
     if (result.success) {
       navigate("/home");
     } else {
-      setErrors({ general: result.error });
+      setServerError(result.error);
     }
-  }
-};
+  };
 
   const inputClass = (field) =>
-    `w-full border rounded-md p-3 placeholder-[var(--color-text)] focus:outline-none focus:ring-2 transition ${
+    `w-full border rounded-md p-3 text-sm placeholder-[var(--color-text)] focus:outline-none focus:ring-2 transition ${
       errors[field] && touched[field]
-        ? 'border-red-500 focus:ring-red-300'
-        : 'border-[var(--color-text)] focus:ring-[var(--color-primary)]'
+        ? "border-red-500 focus:ring-red-300"
+        : "border-[var(--color-text)] focus:ring-[var(--color-primary)]"
     }`;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)] p-4">
       <div className="bg-white shadow-lg rounded-lg max-w-md w-full p-8">
 
-        {/* Header — logo beside name */}
+        {/* Header */}
         <div className="flex items-center justify-center gap-3 mb-6">
           <img src={logo} alt="Hostel Help Desk Logo" className="h-10 w-auto" />
           <h1 className="text-[var(--color-text-heading)] font-bold text-2xl leading-tight">
@@ -103,34 +75,21 @@ const Login = () => {
           </h1>
         </div>
 
-        {/* Login / Report Links */}
+        {/* Nav links */}
         <div className="flex justify-center space-x-2 mb-6 text-[var(--color-text)]">
-          <a href="/login" className="text-[var(--color-primary)] font-semibold">
-            Login
-          </a>
+          <a href="/login" className="text-[var(--color-primary)] font-semibold">Login</a>
           <span>|</span>
-          <a href="/report" className="hover:text-[var(--color-primary)] transition">
-            Report Issues
-          </a>
+          <a href="/signup" className="hover:text-[var(--color-primary)] transition">Sign Up</a>
         </div>
 
-        {/* Form */}
-        <form className="space-y-4" onSubmit={handleSubmit} noValidate>
-          {/* Name */}
-          <div>
-            <input
-              type="text"
-              name="name"
-              placeholder="Name"
-              value={formData.name}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={inputClass('name')}
-            />
-            {errors.name && touched.name && (
-              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-            )}
+        {/* Server error */}
+        {serverError && (
+          <div className="mb-4 px-4 py-3 bg-red-50 border border-red-300 rounded-lg text-red-600 text-sm">
+            {serverError}
           </div>
+        )}
+
+        <form className="space-y-4" onSubmit={handleSubmit} noValidate>
 
           {/* Email */}
           <div>
@@ -141,7 +100,7 @@ const Login = () => {
               value={formData.email}
               onChange={handleChange}
               onBlur={handleBlur}
-              className={inputClass('email')}
+              className={inputClass("email")}
             />
             {errors.email && touched.email && (
               <p className="text-red-500 text-sm mt-1">{errors.email}</p>
@@ -157,7 +116,7 @@ const Login = () => {
               value={formData.password}
               onChange={handleChange}
               onBlur={handleBlur}
-              className={inputClass('password')}
+              className={inputClass("password")}
             />
             {errors.password && touched.password && (
               <p className="text-red-500 text-sm mt-1">{errors.password}</p>
@@ -166,22 +125,21 @@ const Login = () => {
 
           <button
             type="submit"
-            className="w-full bg-[var(--color-primary)] text-white font-semibold py-3 rounded-md hover:bg-blue-700 transition"
+            disabled={loading}
+            className="w-full bg-[var(--color-primary)] text-white font-semibold py-3 rounded-md hover:bg-blue-700 transition disabled:opacity-60"
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
-        {/* Forgot Password */}
         <div className="text-center mt-4 text-[var(--color-text)]">
           <a href="/forgot-password" className="hover:text-[var(--color-primary)] transition">
             Forgot Password?
           </a>
         </div>
 
-        {/* Sign Up */}
         <div className="mt-6 text-center text-[var(--color-text)]">
-          Don't have an account?{' '}
+          Don't have an account?{" "}
           <a href="/signup" className="text-[var(--color-primary)] font-semibold hover:underline">
             Sign Up
           </a>
