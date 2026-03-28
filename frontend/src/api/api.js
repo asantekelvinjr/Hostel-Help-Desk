@@ -38,4 +38,11 @@ export const getUserById = (id) => api.get(`/admin/users/${id}`);
 export const toggleUserStatus = (id) => api.patch(`/admin/users/${id}/toggle`);
 export const deleteUser = (id) => api.delete(`/admin/users/${id}`);
 
+// ── Categories (Admin) ───────────────────────────────────────
+export const getCategories = () => api.get("/admin/categories");
+export const getCategoryById = (id) => api.get(`/admin/categories/${id}`);
+export const createCategory = (data) => api.post("/admin/categories", data);
+export const updateCategory = (id, data) => api.patch(`/admin/categories/${id}`, data);
+export const deleteCategory = (id) => api.delete(`/admin/categories/${id}`);
+
 export default api;
