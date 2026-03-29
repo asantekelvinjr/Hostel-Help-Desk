@@ -2,16 +2,12 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import api from "../../api/api";
-import { useAuth } from "../../context/AuthContext";
 
 const OTP = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user: authUser, login: setAuthUser } = useAuth();
 
   const email = location.state?.email || "";
-  // purpose: "verify" (registration) | "reset" (forgot password)
-  const purpose = location.state?.purpose || "verify";
 
   const [digits, setDigits] = useState(["", "", "", ""]);
   const [error, setError] = useState("");
@@ -21,12 +17,10 @@ const OTP = () => {
   const [secondsLeft, setSecondsLeft] = useState(10 * 60);
   const inputRefs = useRef([]);
 
-  // Focus first input on mount
   useEffect(() => {
     inputRefs.current[0]?.focus();
   }, []);
 
-  // Countdown
   useEffect(() => {
     if (secondsLeft <= 0) return;
     const t = setInterval(() => setSecondsLeft((s) => s - 1), 1000);
@@ -71,21 +65,10 @@ const OTP = () => {
 
     setLoading(true);
     setError("");
-
     try {
-      if (purpose === "verify") {
-        // Registration flow — verifies OTP, returns token, logs user in → /home
-        const { data } = await api.post("/auth/verify-otp", { email, code });
-        // Store token + user in session (same way AuthContext login does)
-        sessionStorage.setItem("hd_user", JSON.stringify({ ...data.user, role: "user" }));
-        sessionStorage.setItem("hd_token", data.token);
-        navigate("/home", { replace: true });
-
-      } else if (purpose === "reset") {
-        // Forgot password flow — verifies OTP, returns resetToken → /reset-password
-        const { data } = await api.post("/auth/verify-reset-otp", { email, code });
-        navigate("/reset-password", { state: { resetToken: data.resetToken, email }, replace: true });
-      }
+      // Verify reset OTP → get resetToken → go to reset password page
+      const { data } = await api.post("/auth/verify-reset-otp", { email, code });
+      navigate("/reset-password", { state: { resetToken: data.resetToken, email }, replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "Invalid or expired code.");
       setDigits(["", "", "", ""]);
@@ -100,7 +83,7 @@ const OTP = () => {
     setResending(true);
     setError("");
     try {
-      await api.post("/auth/resend-otp", { email, purpose });
+      await api.post("/auth/resend-otp", { email });
       setSecondsLeft(10 * 60);
       setDigits(["", "", "", ""]);
       setResent(true);
@@ -118,7 +101,7 @@ const OTP = () => {
       <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)] p-4">
         <div className="bg-white shadow-lg rounded-lg max-w-md w-full p-8 text-center space-y-4">
           <p className="text-gray-600">Session expired. Please start again.</p>
-          <a href={purpose === "reset" ? "/forgot-password" : "/signup"}
+          <a href="/forgot-password"
             className="inline-block text-[var(--color-primary)] font-semibold hover:underline">
             ← Go back
           </a>
@@ -140,24 +123,19 @@ const OTP = () => {
         </div>
 
         <h2 className="text-[var(--color-text-heading)] font-semibold text-lg mb-2">
-          {purpose === "verify" ? "Verify Your Email" : "Enter Reset Code"}
+          Enter Reset Code
         </h2>
         <p className="text-sm text-[var(--color-text)] mb-6">
-          {purpose === "verify"
-            ? "We sent a 4-digit code to activate your account."
-            : "We sent a 4-digit code to reset your password."}{" "}
-          <br />
-          <span className="text-[var(--color-primary)] font-semibold">{email}</span>
+          We sent a 4-digit code to{" "}
+          <span className="text-[var(--color-primary)] font-semibold">{email}</span>.
+          <br />Enter it below to continue.
         </p>
 
-        {/* Resent banner */}
         {resent && (
           <div className="mb-4 px-4 py-3 bg-green-50 border border-green-300 rounded-lg text-green-700 text-sm">
             A new code has been sent to your email.
           </div>
         )}
-
-        {/* Error */}
         {error && (
           <div className="mb-4 px-4 py-3 bg-red-50 border border-red-300 rounded-lg text-red-600 text-sm">
             {error}
@@ -165,7 +143,6 @@ const OTP = () => {
         )}
 
         <form onSubmit={handleVerify}>
-          {/* OTP boxes */}
           <div className="flex justify-center gap-3 sm:gap-4 mb-5">
             {digits.map((d, i) => (
               <input
@@ -178,7 +155,7 @@ const OTP = () => {
                 onChange={(e) => handleChange(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(i, e)}
                 onPaste={i === 0 ? handlePaste : undefined}
-                className={`w-14 h-14 text-center text-2xl font-bold border-2 rounded-xl focus:outline-none transition select-none
+                className={`w-14 h-14 text-center text-2xl font-bold border-2 rounded-xl focus:outline-none transition
                   ${d
                     ? "border-[var(--color-primary)] bg-blue-50 text-[var(--color-primary)]"
                     : "border-gray-300 focus:border-[var(--color-primary)]"
@@ -187,7 +164,6 @@ const OTP = () => {
             ))}
           </div>
 
-          {/* Timer */}
           <div className="flex items-center justify-center gap-2 text-sm text-[var(--color-text)] mb-5">
             <span className={`w-2 h-2 rounded-full ${secondsLeft > 60 ? "bg-green-400" : secondsLeft > 0 ? "bg-yellow-400" : "bg-red-400"}`} />
             {secondsLeft > 0
@@ -195,19 +171,16 @@ const OTP = () => {
               : <span className="text-red-500 font-medium">Code expired</span>}
           </div>
 
-          <button
-            type="submit"
+          <button type="submit"
             disabled={loading || digits.join("").length < 4 || secondsLeft === 0}
             className="w-full bg-[var(--color-primary)] text-white font-semibold py-3 rounded-md hover:bg-blue-700 transition disabled:opacity-60 mb-4">
             {loading ? "Verifying..." : "Verify Code"}
           </button>
         </form>
 
-        {/* Resend */}
         <p className="text-sm text-[var(--color-text)]">
           Didn't receive it?{" "}
-          <button
-            onClick={handleResend}
+          <button onClick={handleResend}
             disabled={resending || secondsLeft > 9 * 60}
             className="text-[var(--color-primary)] font-semibold hover:underline disabled:opacity-40 disabled:cursor-not-allowed">
             {resending ? "Sending..." : "Resend Code"}
@@ -215,7 +188,7 @@ const OTP = () => {
         </p>
 
         <div className="mt-5 pt-4 border-t border-gray-100">
-          <a href={purpose === "reset" ? "/forgot-password" : "/signup"}
+          <a href="/forgot-password"
             className="text-sm text-[var(--color-text)] hover:text-[var(--color-primary)] flex items-center justify-center gap-1">
             ← Back
           </a>

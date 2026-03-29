@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import { registerUser } from "../../api/api";
+import { useAuth } from "../../context/AuthContext";
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [formData, setFormData] = useState({
     name: "", email: "", roomNumber: "", password: "", confirmPassword: "",
@@ -52,14 +54,18 @@ const Signup = () => {
 
     setLoading(true);
     try {
-      await registerUser({
+      const { data } = await registerUser({
         name: formData.name,
         email: formData.email,
         password: formData.password,
         roomNumber: formData.roomNumber,
       });
-      // Navigate to OTP with email + context so it knows this is registration
-      navigate("/otp", { state: { email: formData.email, purpose: "verify" } });
+
+      // Backend returns token + user — store in session and go straight to /home
+      sessionStorage.setItem("hd_user", JSON.stringify({ ...data.user, role: "user" }));
+      sessionStorage.setItem("hd_token", data.token);
+      navigate("/home", { replace: true });
+
     } catch (err) {
       setServerError(err.response?.data?.message || "Registration failed. Please try again.");
     } finally {

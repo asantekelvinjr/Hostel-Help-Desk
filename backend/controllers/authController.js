@@ -10,45 +10,13 @@ const generateToken = (id, role) =>
   });
 
 const generateOTP = () =>
-  Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit
+  Math.floor(1000 + Math.random() * 9000).toString();
 
 const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
 
-const sendOTPEmail = async (email, name, code, purpose) => {
-  const subject =
-    purpose === "verify"
-      ? "Verify your Hostel Help Desk account"
-      : "Reset your Hostel Help Desk password";
-
-  const action =
-    purpose === "verify"
-      ? "verify your email address and activate your account"
-      : "reset your password";
-
-  await sendEmail({
-    to: email,
-    subject,
-    html: `
-      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-        <h2 style="color: #1d4ed8;">Hostel Help Desk</h2>
-        <p>Hi <strong>${name}</strong>,</p>
-        <p>Use the code below to ${action}. It expires in <strong>10 minutes</strong>.</p>
-        <div style="font-size: 40px; font-weight: bold; letter-spacing: 14px; text-align: center;
-                    padding: 24px; background: #eff6ff; border-radius: 10px;
-                    margin: 24px 0; color: #1d4ed8; border: 2px dashed #bfdbfe;">
-          ${code}
-        </div>
-        <p style="color: #6b7280; font-size: 14px;">
-          If you didn't request this, you can safely ignore this email.
-        </p>
-      </div>
-    `,
-  });
-};
-
 // ── Register ─────────────────────────────────────────────────
 // @route  POST /api/auth/register
-// Creates the user (unverified) and sends an OTP to their email
+// Creates user and returns JWT immediately — no OTP needed
 const register = async (req, res) => {
   try {
     const { name, email, password, roomNumber } = req.body;
@@ -57,80 +25,21 @@ const register = async (req, res) => {
       return res.status(400).json({ message: "Name, email and password are required." });
 
     const existing = await User.findOne({ email });
-    if (existing) {
-      // If they registered but never verified, resend OTP
-      if (!existing.isVerified) {
-        await OTPModel.deleteMany({ email: existing.email, purpose: "verify" });
-        const code = generateOTP();
-        await OTPModel.create({
-          email: existing.email,
-          code,
-          purpose: "verify",
-          expiresAt: new Date(Date.now() + OTP_EXPIRY_MS),
-        });
-        await sendOTPEmail(existing.email, existing.name, code, "verify");
-        return res.status(200).json({
-          message: "Account already exists but is unverified. A new code has been sent.",
-          email: existing.email,
-        });
-      }
+    if (existing)
       return res.status(409).json({ message: "An account with this email already exists." });
-    }
 
     const user = await User.create({ name, email, password, roomNumber });
-
-    // Send OTP
-    const code = generateOTP();
-    await OTPModel.create({
-      email: user.email,
-      code,
-      purpose: "verify",
-      expiresAt: new Date(Date.now() + OTP_EXPIRY_MS),
-    });
-    await sendOTPEmail(user.email, user.name, code, "verify");
-
-    res.status(201).json({
-      message: "Account created. Please check your email for the verification code.",
-      email: user.email,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// ── Verify OTP (registration) ────────────────────────────────
-// @route  POST /api/auth/verify-otp
-// Verifies the code, marks user as verified, returns JWT → logs them in
-const verifyOTP = async (req, res) => {
-  try {
-    const { email, code } = req.body;
-    if (!email || !code)
-      return res.status(400).json({ message: "Email and code are required." });
-
-    const record = await OTPModel.findOne({ email: email.toLowerCase(), code, purpose: "verify", used: false });
-
-    if (!record || record.expiresAt < new Date())
-      return res.status(400).json({ message: "Invalid or expired code." });
-
-    // Mark OTP used
-    record.used = true;
-    await record.save();
-
-    // Activate user
-    const user = await User.findOneAndUpdate(
-      { email: email.toLowerCase() },
-      { isVerified: true },
-      { new: true }
-    );
-
-    if (!user) return res.status(404).json({ message: "User not found." });
-
     const token = generateToken(user._id, "user");
 
-    res.json({
-      message: "Email verified successfully.",
+    res.status(201).json({
+      message: "Account created successfully.",
       token,
-      user: { id: user._id, name: user.name, email: user.email, roomNumber: user.roomNumber },
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        roomNumber: user.roomNumber,
+      },
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -142,6 +51,7 @@ const verifyOTP = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
     if (!email || !password)
       return res.status(400).json({ message: "Email and password are required." });
 
@@ -152,18 +62,17 @@ const login = async (req, res) => {
     if (!user.isActive)
       return res.status(403).json({ message: "Your account has been deactivated. Contact admin." });
 
-    if (!user.isVerified)
-      return res.status(403).json({
-        message: "Please verify your email before logging in.",
-        unverified: true,
-        email: user.email,
-      });
-
     const token = generateToken(user._id, "user");
+
     res.json({
       message: "Login successful.",
       token,
-      user: { id: user._id, name: user.name, email: user.email, roomNumber: user.roomNumber },
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        roomNumber: user.roomNumber,
+      },
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -190,7 +99,7 @@ const getMe = async (req, res) => {
 
 // ── Forgot Password ──────────────────────────────────────────
 // @route  POST /api/auth/forgot-password
-// Sends a 4-digit OTP to the user's email for password reset
+// Sends a 4-digit OTP to the user's email
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -199,7 +108,7 @@ const forgotPassword = async (req, res) => {
 
     const user = await User.findOne({ email: email.toLowerCase().trim() });
 
-    // Always return same message to prevent email enumeration
+    // Always respond same way to prevent email enumeration
     if (!user)
       return res.json({ message: "If this email exists, a reset code has been sent." });
 
@@ -213,7 +122,25 @@ const forgotPassword = async (req, res) => {
       expiresAt: new Date(Date.now() + OTP_EXPIRY_MS),
     });
 
-    await sendOTPEmail(user.email, user.name, code, "reset");
+    await sendEmail({
+      to: user.email,
+      subject: "Your Hostel Help Desk Password Reset Code",
+      html: `
+        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+          <h2 style="color: #1d4ed8;">Hostel Help Desk</h2>
+          <p>Hi <strong>${user.name}</strong>,</p>
+          <p>Use the code below to reset your password. It expires in <strong>10 minutes</strong>.</p>
+          <div style="font-size: 40px; font-weight: bold; letter-spacing: 14px; text-align: center;
+                      padding: 24px; background: #eff6ff; border-radius: 10px;
+                      margin: 24px 0; color: #1d4ed8; border: 2px dashed #bfdbfe;">
+            ${code}
+          </div>
+          <p style="color: #6b7280; font-size: 14px;">
+            If you didn't request this, you can safely ignore this email.
+          </p>
+        </div>
+      `,
+    });
 
     res.json({ message: "If this email exists, a reset code has been sent." });
   } catch (error) {
@@ -223,14 +150,18 @@ const forgotPassword = async (req, res) => {
 
 // ── Verify Reset OTP ─────────────────────────────────────────
 // @route  POST /api/auth/verify-reset-otp
-// Returns a short-lived resetToken if code is valid
 const verifyResetOTP = async (req, res) => {
   try {
     const { email, code } = req.body;
     if (!email || !code)
       return res.status(400).json({ message: "Email and code are required." });
 
-    const record = await OTPModel.findOne({ email: email.toLowerCase(), code, purpose: "reset", used: false });
+    const record = await OTPModel.findOne({
+      email: email.toLowerCase(),
+      code,
+      purpose: "reset",
+      used: false,
+    });
 
     if (!record || record.expiresAt < new Date())
       return res.status(400).json({ message: "Invalid or expired code." });
@@ -253,53 +184,10 @@ const verifyResetOTP = async (req, res) => {
 
 // ── Reset Password ───────────────────────────────────────────
 // @route  POST /api/auth/reset-password
-// Sets new password, returns JWT → logs user in directly
-// const resetPassword = async (req, res) => {
-//   try {
-//     const { resetToken, password, confirmPassword } = req.body;
-
-//     if (!resetToken || !password)
-//       return res.status(400).json({ message: "Reset token and new password are required." });
-
-//     if (password !== confirmPassword)
-//       return res.status(400).json({ message: "Passwords do not match." });
-
-//     if (password.length < 6)
-//       return res.status(400).json({ message: "Password must be at least 6 characters." });
-
-//     let decoded;
-//     try {
-//       decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
-//     } catch {
-//       return res.status(400).json({ message: "Reset link has expired. Please start over." });
-//     }
-
-//     if (decoded.purpose !== "reset")
-//       return res.status(400).json({ message: "Invalid reset token." });
-
-//     const user = await User.findOne({ email: decoded.email });
-//     if (!user) return res.status(404).json({ message: "User not found." });
-
-//     user.password = password; // pre-save hook hashes it
-//     await user.save();
-
-//     // Log them in immediately
-//     const token = generateToken(user._id, "user");
-
-//     res.json({
-//       message: "Password reset successfully.",
-//       token,
-//       user: { id: user._id, name: user.name, email: user.email, roomNumber: user.roomNumber },
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
+// Resets password and returns JWT → logs user in directly
 const resetPassword = async (req, res) => {
   try {
     const { resetToken, password, confirmPassword } = req.body;
-    console.log("Received resetToken:", resetToken);
 
     if (!resetToken || !password)
       return res.status(400).json({ message: "Reset token and new password are required." });
@@ -313,9 +201,8 @@ const resetPassword = async (req, res) => {
     let decoded;
     try {
       decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
-    } catch (err) {
-      console.error("JWT verify error:", err);
-      return res.status(400).json({ message: "Reset link has expired or is invalid." });
+    } catch {
+      return res.status(400).json({ message: "Reset link has expired. Please start over." });
     }
 
     if (decoded.purpose !== "reset")
@@ -332,38 +219,58 @@ const resetPassword = async (req, res) => {
     res.json({
       message: "Password reset successfully.",
       token,
-      user: { id: user._id, name: user.name, email: user.email, roomNumber: user.roomNumber },
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        roomNumber: user.roomNumber,
+      },
     });
   } catch (error) {
-    console.error("ResetPassword error:", error); // <--- HERE
     res.status(500).json({ message: error.message });
   }
 };
 
 // ── Resend OTP ───────────────────────────────────────────────
 // @route  POST /api/auth/resend-otp
+// Only used for forgot-password flow now
 const resendOTP = async (req, res) => {
   try {
-    const { email, purpose } = req.body;
-    if (!email || !purpose)
-      return res.status(400).json({ message: "Email and purpose are required." });
+    const { email } = req.body;
+    if (!email)
+      return res.status(400).json({ message: "Email is required." });
 
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return res.status(404).json({ message: "User not found." });
 
-    await OTPModel.deleteMany({ email: user.email, purpose });
+    await OTPModel.deleteMany({ email: user.email, purpose: "reset" });
 
     const code = generateOTP();
     await OTPModel.create({
       email: user.email,
       code,
-      purpose,
+      purpose: "reset",
       expiresAt: new Date(Date.now() + OTP_EXPIRY_MS),
     });
 
-    await sendOTPEmail(user.email, user.name, code, purpose);
+    await sendEmail({
+      to: user.email,
+      subject: "Your new Hostel Help Desk reset code",
+      html: `
+        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+          <h2 style="color: #1d4ed8;">Hostel Help Desk</h2>
+          <p>Hi <strong>${user.name}</strong>, here is your new reset code:</p>
+          <div style="font-size: 40px; font-weight: bold; letter-spacing: 14px; text-align: center;
+                      padding: 24px; background: #eff6ff; border-radius: 10px;
+                      margin: 24px 0; color: #1d4ed8; border: 2px dashed #bfdbfe;">
+            ${code}
+          </div>
+          <p style="color: #6b7280; font-size: 14px;">Expires in 10 minutes.</p>
+        </div>
+      `,
+    });
 
-    res.json({ message: "A new code has been sent to your email." });
+    res.json({ message: "A new code has been sent." });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -371,7 +278,6 @@ const resendOTP = async (req, res) => {
 
 module.exports = {
   register,
-  verifyOTP,
   login,
   getMe,
   forgotPassword,
