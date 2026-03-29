@@ -7,11 +7,7 @@ const Signup = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    roomNumber: "",
-    password: "",
-    confirmPassword: "",
+    name: "", email: "", roomNumber: "", password: "", confirmPassword: "",
   });
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -25,8 +21,7 @@ const Signup = () => {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email))
       errs.email = "Enter a valid email address.";
     if (!fields.password) errs.password = "Password is required.";
-    else if (fields.password.length < 6)
-      errs.password = "Password must be at least 6 characters.";
+    else if (fields.password.length < 6) errs.password = "Must be at least 6 characters.";
     if (!fields.confirmPassword) errs.confirmPassword = "Please confirm your password.";
     else if (fields.password !== fields.confirmPassword)
       errs.confirmPassword = "Passwords do not match.";
@@ -63,7 +58,8 @@ const Signup = () => {
         password: formData.password,
         roomNumber: formData.roomNumber,
       });
-      navigate("/login");
+      // Navigate to OTP with email + context so it knows this is registration
+      navigate("/otp", { state: { email: formData.email, purpose: "verify" } });
     } catch (err) {
       setServerError(err.response?.data?.message || "Registration failed. Please try again.");
     } finally {
@@ -72,10 +68,10 @@ const Signup = () => {
   };
 
   const inputClass = (field) =>
-    `w-full border rounded-md p-3 text-sm placeholder-[var(--color-text)] focus:outline-none focus:ring-2 transition ${
+    `w-full border rounded-md p-3 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 transition ${
       errors[field] && touched[field]
         ? "border-red-500 focus:ring-red-300"
-        : "border-[var(--color-text)] focus:ring-[var(--color-primary)]"
+        : "border-gray-300 focus:ring-[var(--color-primary)]"
     }`;
 
   return (
@@ -84,20 +80,18 @@ const Signup = () => {
 
         {/* Header */}
         <div className="flex items-center justify-center gap-3 mb-6">
-          <img src={logo} alt="Hostel Help Desk Logo" className="h-10 w-auto" />
+          <img src={logo} alt="logo" className="h-10 w-auto" />
           <h1 className="text-[var(--color-text-heading)] font-bold text-2xl leading-tight">
             Hostel Help Desk
           </h1>
         </div>
 
-        {/* Nav links */}
-        <div className="flex justify-center space-x-2 mb-6 text-[var(--color-text)]">
+        <div className="flex justify-center space-x-2 mb-6 text-sm text-[var(--color-text)]">
           <a href="/login" className="hover:text-[var(--color-primary)]">Login</a>
           <span>|</span>
           <a href="/signup" className="text-[var(--color-primary)] font-semibold">Sign Up</a>
         </div>
 
-        {/* Server error */}
         {serverError && (
           <div className="mb-4 px-4 py-3 bg-red-50 border border-red-300 rounded-lg text-red-600 text-sm">
             {serverError}
@@ -105,39 +99,29 @@ const Signup = () => {
         )}
 
         <form className="space-y-4" onSubmit={handleSubmit} noValidate>
-
-          {/* Name */}
           <div>
             <input type="text" name="name" placeholder="Full Name"
               value={formData.name} onChange={handleChange} onBlur={handleBlur}
               className={inputClass("name")} />
             {errors.name && touched.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
           </div>
-
-          {/* Email */}
           <div>
             <input type="email" name="email" placeholder="Email"
               value={formData.email} onChange={handleChange} onBlur={handleBlur}
               className={inputClass("email")} />
             {errors.email && touched.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
           </div>
-
-          {/* Room Number */}
           <div>
             <input type="text" name="roomNumber" placeholder="Room Number (optional)"
               value={formData.roomNumber} onChange={handleChange} onBlur={handleBlur}
               className={inputClass("roomNumber")} />
           </div>
-
-          {/* Password */}
           <div>
             <input type="password" name="password" placeholder="Password"
               value={formData.password} onChange={handleChange} onBlur={handleBlur}
               className={inputClass("password")} />
             {errors.password && touched.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
           </div>
-
-          {/* Confirm Password */}
           <div>
             <input type="password" name="confirmPassword" placeholder="Confirm Password"
               value={formData.confirmPassword} onChange={handleChange} onBlur={handleBlur}
@@ -147,17 +131,14 @@ const Signup = () => {
             )}
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[var(--color-primary)] text-white font-semibold py-3 rounded-md hover:bg-blue-700 transition disabled:opacity-60"
-          >
+          <button type="submit" disabled={loading}
+            className="w-full bg-[var(--color-primary)] text-white font-semibold py-3 rounded-md hover:bg-blue-700 transition disabled:opacity-60">
             {loading ? "Creating account..." : "Register"}
           </button>
         </form>
 
-        <div className="mt-6 text-center text-[var(--color-text)]">
-          Have an existing account?{" "}
+        <div className="mt-6 text-center text-sm text-[var(--color-text)]">
+          Have an account?{" "}
           <a href="/login" className="text-[var(--color-primary)] font-semibold hover:underline">Login</a>
         </div>
       </div>
