@@ -1,45 +1,56 @@
 // backend/utils/mailer.js
-const nodemailer = require("nodemailer");
+const sgMail = require("@sendgrid/mail");
 
-// Create transporter for Gmail
-const transporter = nodemailer.createTransport({
-  service: "gmail", // Use Gmail service for stability
-  auth: {
-    user: process.env.SMTP_USER, // Your Gmail address
-    pass: process.env.SMTP_PASS, // Gmail App Password (16 chars, no spaces)
-  },
-  tls: {
-    rejectUnauthorized: false, // Prevent some socket issues
-  },
-});
-
-// Verify connection configuration
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("❌ SMTP Connection Error:", error);
-  } else {
-    console.log("✅ SMTP Server is ready to take messages");
-  }
-});
+// Set SendGrid API key from environment variable
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 /**
  * Send an email
- * @param {{ to: string, subject: string, html: string }} options
+ * @param {{ to: string, subject: string, html: string, replyTo?: string }} options
  */
-const sendEmail = async ({ to, subject, html }) => {
+const sendEmail = async ({ to, subject, html, replyTo }) => {
   try {
-    const info = await transporter.sendMail({
-      from: `"Hostel Help Desk" <${process.env.SMTP_USER}>`,
+    const msg = {
       to,
+      from: `"Hostel Help Desk" <elmago6225@gmail.com>`, // verified sender
       subject,
       html,
-    });
-    console.log("✅ Email sent:", info.messageId);
+    };
+
+    // Optional replyTo
+    if (replyTo) {
+      msg.replyTo = replyTo;
+    }
+
+    const info = await sgMail.send(msg);
+    console.log("✅ Email sent:", info);
     return info;
   } catch (error) {
-    console.error("❌ Failed to send email:", error);
-    throw new Error(error.message || "Failed to send email");
+    // Log detailed error from SendGrid response if available
+    console.error("❌ Failed to send email:", error.response?.body || error.message);
+    throw new Error("Failed to send email");
   }
 };
+
+/**
+ * Optional: test SendGrid connection by sending a test email
+ */
+const verifyConnection = async () => {
+  try {
+    const testMsg = {
+      to: "elmago6225@gmail.com",
+      from: `"Hostel Help Desk" <elmago6225@gmail.com>`,
+      subject: "Test Connection",
+      html: "<p>SendGrid connection verified.</p>",
+    };
+    await sgMail.send(testMsg);
+    console.log("✅ SendGrid connection is ready to take messages");
+  } catch (err) {
+    console.error("❌ SendGrid connection error:", err.response?.body || err.message);
+  }
+};
+
+// Uncomment this line to run a one-time test on server startup
+// verifyConnection();
 
 module.exports = { sendEmail };
