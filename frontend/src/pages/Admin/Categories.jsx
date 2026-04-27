@@ -229,12 +229,14 @@ const AdminCategories = () => {
                   <span className="text-gray-500">{formatDate(cat.createdAt)}</span>
                   <span className="flex justify-end gap-2">
                     <button onClick={() => navigate("/admin/category-details", { state: { category: cat } })}
-                      className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-md transition">
-                      <Eye className="w-3 h-3" /> View
+                      className="flex items-center gap-1 hover:cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-md transition">
+                      {/* <Eye className="w-3 h-3" />  */}
+                      View
                     </button>
                     <button onClick={() => setDeleteTarget(cat)}
-                      className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-md transition">
-                      <Trash2 className="w-3 h-3" /> Delete
+                      className="flex items-center gap-1 hover:cursor-pointer bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-md transition">
+                      {/* <Trash2 className="w-3 h-3" />  */}
+                      Delete
                     </button>
                   </span>
                 </div>

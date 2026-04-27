@@ -97,7 +97,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, avatar, setAvatar }) => {
             <button
               onClick={() => fileInputRef.current?.click()}
               title="Change profile photo"
-              className="relative shrink-0 group focus:outline-none">
+              className="relative shrink-0 group focus:outline-none hover:cursor-pointer">
               {avatar ? (
                 <img src={avatar} alt="Admin"
                   className="w-9 h-9 rounded-full object-cover ring-2 ring-blue-500 ring-offset-1" />
@@ -125,7 +125,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, avatar, setAvatar }) => {
           {/* Logout button */}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-md text-sm font-medium hover:bg-blue-700 transition">
+            className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:cursor-pointer text-white px-4 py-2.5 rounded-md text-sm font-medium hover:bg-blue-700 transition">
             <LogOut size={16} />
             Logout
           </button>

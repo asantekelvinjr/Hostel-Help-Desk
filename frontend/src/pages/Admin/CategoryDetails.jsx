@@ -140,13 +140,13 @@ const CategoryDetails = () => {
         <div className="flex gap-2 shrink-0">
           <button
             onClick={() => { setEditForm({ name: category.name, description: category.description || "", status: category.status }); setShowEditModal(true); setSaveError(""); }}
-            className="flex items-center gap-1.5 border border-blue-600 text-blue-600 hover:bg-blue-50 text-sm font-medium px-3 sm:px-4 py-2 rounded-md transition">
+            className="flex items-center gap-1.5 hover:cursor-pointer border border-blue-600 text-blue-600 hover:bg-blue-50 text-sm font-medium px-3 sm:px-4 py-2 rounded-md transition">
             <Pencil className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Edit Category</span>
             <span className="sm:hidden">Edit</span>
           </button>
           <button onClick={() => setShowDeleteModal(true)}
-            className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium px-3 sm:px-4 py-2 rounded-md transition">
+            className="flex items-center gap-1.5 bg-red-500 hover:cursor-pointer hover:bg-red-600 text-white text-sm font-medium px-3 sm:px-4 py-2 rounded-md transition">
             <Trash2 className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Delete Category</span>
             <span className="sm:hidden">Delete</span>
@@ -275,7 +275,8 @@ const CategoryDetails = () => {
                     <span className="text-gray-600 text-xs truncate">{report.submittedBy?.name || "—"}</span>
                     <button onClick={() => navigate("/admin/view-report", { state: { report } })}
                       className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-md transition shrink-0">
-                      <Eye className="w-3 h-3" /> View
+                      {/* <Eye className="w-3 h-3" /> */}
+                       View
                     </button>
                   </span>
                 </div>

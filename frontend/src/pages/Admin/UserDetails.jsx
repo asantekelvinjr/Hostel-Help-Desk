@@ -121,7 +121,7 @@ const UserDetails = () => {
           Users / <span className="text-gray-900">{user.name}</span>
         </h2>
         <button onClick={handleToggle} disabled={toggling}
-          className={`flex items-center gap-1.5 text-white text-sm font-medium px-3 sm:px-4 py-2 rounded-md transition disabled:opacity-60 ${user.isActive ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"}`}>
+          className={`flex items-center gap-1.5 text-white text-sm hover:cursor-pointer font-medium px-3 sm:px-4 py-2 rounded-md transition disabled:opacity-60 ${user.isActive ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"}`}>
           {toggling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserX className="w-3.5 h-3.5" />}
           <span className="hidden sm:inline">{user.isActive ? "Deactivate User" : "Activate User"}</span>
           <span className="sm:hidden">{user.isActive ? "Deactivate" : "Activate"}</span>
@@ -246,7 +246,7 @@ const UserDetails = () => {
                       {report.status}
                     </span>
                     <button onClick={() => navigate("/admin/view-report", { state: { report } })}
-                      className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-md transition shrink-0">
+                      className="flex items-center gap-1 bg-blue-600 hover:cursor-pointer hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-md transition shrink-0">
                       View
                     </button>
                   </span>

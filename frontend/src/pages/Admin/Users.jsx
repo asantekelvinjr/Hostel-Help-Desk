@@ -214,11 +214,11 @@ const AdminUsers = () => {
                   <span className="text-gray-500 text-xs">{formatDate(user.createdAt)}</span>
                   <span className="flex gap-2 shrink-0">
                     <button onClick={() => navigate("/admin/user-details", { state: { user } })}
-                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-md transition">
+                      className="bg-blue-600 hover:bg-blue-700 hover:cursor-pointer text-white text-xs px-3 py-1.5 rounded-md transition">
                       View
                     </button>
                     <button onClick={() => setDeleteTarget(user)}
-                      className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-md transition">
+                      className="bg-red-500 hover:bg-red-600 hover:cursor-pointer text-white text-xs px-3 py-1.5 rounded-md transition">
                       Delete
                     </button>
                   </span>

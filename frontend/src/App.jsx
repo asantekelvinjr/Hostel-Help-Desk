@@ -30,6 +30,7 @@ import UserDetails from "./pages/Admin/UserDetails";
 
 // Other
 import NotFound from "./pages/NotFound";
+import Notifications from "./pages/Notifications";
 
 const App = () => {
   return (
@@ -78,6 +79,7 @@ const App = () => {
             <Route path="category-details" element={<CategoryDetails />} />
             <Route path="users" element={<Users />} />
             <Route path="user-details" element={<UserDetails />} />
+            <Route path="notifications" element={<Notifications />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

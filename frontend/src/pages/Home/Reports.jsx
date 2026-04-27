@@ -70,7 +70,7 @@ const Reports = () => {
               My Reports
             </h2>
             <select
-              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 hover:cursor-pointer hover:ring-1 hover:ring-[var(--color-primary)] focus:ring-[var(--color-primary)]"
               value={filterStatus}
               onChange={handleFilterChange}
             >

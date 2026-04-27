@@ -140,10 +140,10 @@ const ViewReport = () => {
               <div className="mt-2">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Quick Actions</p>
                 <div className="flex gap-3">
-                  <button className="flex items-center gap-2 border border-gray-200 bg-white hover:bg-gray-50 px-4 py-2 rounded-lg text-sm text-gray-600 transition shadow-sm">
+                  <button className="flex items-center gap-2 border hover:cursor-pointer border-gray-200 bg-white hover:bg-gray-50 px-4 py-2 rounded-lg text-sm text-gray-600 transition shadow-sm">
                     <Phone size={14} /> Call Room
                   </button>
-                  <button className="flex items-center gap-2 border border-gray-200 bg-white hover:bg-gray-50 px-4 py-2 rounded-lg text-sm text-gray-600 transition shadow-sm">
+                  <button className="flex items-center gap-2 border hover:cursor-pointer border-gray-200 bg-white hover:bg-gray-50 px-4 py-2 rounded-lg text-sm text-gray-600 transition shadow-sm">
                     <Mail size={14} /> Email User
                   </button>
                 </div>
@@ -203,18 +203,18 @@ const ViewReport = () => {
         {/* Bottom Actions */}
         <div className="flex justify-between items-center mt-6">
           <button onClick={handleDelete} disabled={deleting}
-            className="flex items-center gap-2 border border-red-200 text-red-500 hover:bg-red-50 px-4 py-2.5 rounded-lg text-sm font-medium transition disabled:opacity-60">
+            className="flex items-center hover:cursor-pointer gap-2 border border-red-200 text-red-500 hover:bg-red-50 px-4 py-2.5 rounded-lg text-sm font-medium transition disabled:opacity-60">
             {deleting && <Loader2 className="w-4 h-4 animate-spin" />}
             Delete Report
           </button>
 
           <div className="flex gap-3">
             <button onClick={() => navigate(-1)}
-              className="border border-gray-200 text-gray-600 hover:bg-gray-50 px-4 py-2.5 rounded-lg text-sm font-medium transition">
+              className="border border-gray-200 text-gray-600 hover:cursor-pointer hover:bg-gray-50 px-4 py-2.5 rounded-lg text-sm font-medium transition">
               Close
             </button>
             <button onClick={handleUpdate} disabled={saving || !incoming._id}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition shadow-sm disabled:opacity-60">
+              className="flex items-center gap-2 bg-blue-600 hover:cursor-pointer hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition shadow-sm disabled:opacity-60">
               {saving && <Loader2 className="w-4 h-4 animate-spin" />}
               {saving ? "Saving..." : "Update Report"}
             </button>

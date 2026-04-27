@@ -213,12 +213,12 @@ const ManageReport = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => navigate("/admin/view-report", { state: { report } })}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-xs font-medium transition">
+                  className="flex-1 bg-blue-600 hover:cursor-pointer hover:bg-blue-700 text-white py-2 rounded-lg text-xs font-medium transition">
                   View
                 </button>
                 <button
                   onClick={() => setDeleteTarget(report)}
-                  className="flex-1 bg-red-50 hover:bg-red-100 text-red-500 py-2 rounded-lg text-xs font-medium transition">
+                  className="flex-1 bg-red-50 hover:cursor-pointer hover:bg-red-100 text-red-500 py-2 rounded-lg text-xs font-medium transition">
                   Delete
                 </button>
               </div>
@@ -256,11 +256,11 @@ const ManageReport = () => {
                 </span>
                 <div className="flex gap-2">
                   <button onClick={() => navigate("/admin/view-report", { state: { report } })}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs transition">
+                    className="bg-blue-600 hover:bg-blue-700 hover:cursor-pointer text-white px-3 py-1.5 rounded-lg text-xs transition">
                     View
                   </button>
                   <button onClick={() => setDeleteTarget(report)}
-                    className="bg-red-50 hover:bg-red-100 text-red-500 px-3 py-1.5 rounded-lg text-xs transition">
+                    className="bg-red-50 hover:bg-red-100 hover:cursor-pointer text-red-500 px-3 py-1.5 rounded-lg text-xs transition">
                     Delete
                   </button>
                 </div>

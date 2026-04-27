@@ -177,7 +177,7 @@ const Home = () => {
 
               {/* Submit */}
               <button type="submit" disabled={loading}
-                className="w-full bg-[var(--color-primary)] text-white py-3 rounded-lg font-semibold hover:bg-blue-700 active:scale-[0.98] transition disabled:opacity-60 flex items-center justify-center gap-2">
+                className="w-full bg-[var(--color-primary)] text-white py-3 rounded-lg font-semibold hover:bg-blue-700 hover:cursor-pointer active:scale-[0.98] transition disabled:opacity-60 flex items-center justify-center gap-2 ">
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                 {loading ? "Submitting..." : "Submit Issue"}
               </button>

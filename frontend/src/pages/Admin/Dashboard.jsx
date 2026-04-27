@@ -221,7 +221,7 @@ const AdminDashboard = () => {
 
           <button
             onClick={() => navigate("/admin/reports")}
-            className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2.5 rounded-lg transition">
+            className="mt-4 w-full bg-blue-600 hover:bg-blue-700 hover:cursor-pointer text-white text-sm font-medium py-2.5 rounded-lg transition">
             Manage All Reports
           </button>
         </div>

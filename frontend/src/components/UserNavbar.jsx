@@ -75,16 +75,16 @@ const UserNavbar = () => {
                   <img src={avatar} alt="avatar"
                     className="w-8 h-8 rounded-full object-cover ring-2 ring-[var(--color-primary)] ring-offset-1" />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-orange-400 flex items-center justify-center text-white text-xs font-semibold">
+                  <div className="w-8 h-8 rounded-full hover:cursor-pointer bg-orange-400 flex items-center justify-center text-white text-xs font-semibold">
                     {initials}
                   </div>
                 )}
                 <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[var(--color-primary)] rounded-full flex items-center justify-center ring-1 ring-white">
-                  <Camera className="w-2.5 h-2.5 text-white" />
+                  <Camera className="w-2.5 h-2.5 hover:cursor-pointer text-white" />
                 </span>
               </div>
               {/* Real name from backend */}
-              <span className="hidden sm:block text-sm text-[var(--color-text)]">
+              <span className="hidden sm:block hover:cursor-pointer hover:text-primary text-sm text-[var(--color-text)]">
                 {user?.name || "User"}
               </span>
             </button>
